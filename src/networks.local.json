@@ -1,0 +1,17 @@
+{
+  "realio": {
+    "prettyName": "Realio Network",
+    "restUrl": [
+      "https://YOUR-REST-ENDPOINT"
+    ],
+    "rpcUrl": [
+      "https://YOUR-RPC-ENDPOINT"
+    ],
+    "gasPrice": "1000000000ario",
+    "gasPricePrefer": "1000000000ario",
+    "slip44": 60,
+    "autostake": {
+      "correctSlip44": true
+    }
+  }
+}

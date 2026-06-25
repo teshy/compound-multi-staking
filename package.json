@@ -1,0 +1,40 @@
+{
+  "name": "compound-multi-staking",
+  "version": "1.0.0",
+  "description": "Auto-compound bot for Realio (realionetwork_3301-1) — authz withdraw+delegate for multistaking chains where rewards are not auto-withdrawn on delegate.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "compound": "node compound.mjs",
+    "dry-run": "DRY_RUN=true node compound.mjs"
+  },
+  "dependencies": {
+    "@cosmjs/amino": "^0.30.1",
+    "@cosmjs/crypto": "^0.30.1",
+    "@cosmjs/encoding": "^0.30.1",
+    "@cosmjs/proto-signing": "^0.30.1",
+    "@cosmjs/stargate": "^0.30.1",
+    "@cosmjs/utils": "^0.30.1",
+    "@ethersproject/bytes": "^5.7.0",
+    "@ethersproject/keccak256": "^5.7.0",
+    "@ethersproject/wallet": "^5.7.0",
+    "@tharsis/address-converter": "^0.1.8",
+    "axios": "^1.6.0",
+    "axios-retry": "^3.4.0",
+    "bech32": "^1.1.4",
+    "compare-versions": "^5.0.3",
+    "cosmjs-types": "^0.7.1",
+    "dotenv": "^16.0.3",
+    "lodash": "^4.17.21",
+    "long": "^5.2.3",
+    "mathjs": "^11.7.0",
+    "winston": "^3.13.0"
+  },
+  "overrides": {
+    "protobufjs": "^7.2.6",
+    "axios": "^1.6.0"
+  }
+}

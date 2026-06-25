@@ -1,0 +1,13 @@
+[Unit]
+Description=Daily auto-compound run for Realio delegators
+
+[Timer]
+# Daily at 13:00 UTC. Adjust to suit your schedule — just avoid running at
+# the same time as your restake/autostake bot if you run one alongside this.
+OnCalendar=*-*-* 13:00:00 UTC
+RandomizedDelaySec=600
+Persistent=true
+Unit=compound.service
+
+[Install]
+WantedBy=timers.target

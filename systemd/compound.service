@@ -1,0 +1,26 @@
+[Unit]
+Description=Auto-compound bot for Realio multistaking
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=YOUR_USER
+WorkingDirectory=/home/YOUR_USER/compound-multi-staking
+# MNEMONIC is loaded from .env by dotenv — never referenced in this unit.
+ExecStart=/home/YOUR_USER/.nvm/versions/node/v20.20.2/bin/node compound.mjs
+Environment=DRY_RUN=false
+TimeoutStartSec=300
+Nice=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/home/YOUR_USER/compound-multi-staking
+ProtectHome=read-only
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
