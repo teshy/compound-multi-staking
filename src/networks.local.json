@@ -1,6 +1,7 @@
 {
   "realio": {
     "prettyName": "Realio Network",
+    "chainId": "realionetwork_3301-1",
     "restUrl": [
       "https://YOUR-REST-ENDPOINT"
     ],

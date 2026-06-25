@@ -146,6 +146,18 @@ realio-networkd tx authz grant <BOT_ADDRESS> stake \
 | `MIN_REWARD` | `1000000000000000000` (1 RIO) | Skip delegators with less pending than this (ario) |
 | `DRY_RUN` | `true` | Set to `"false"` to broadcast |
 
+## Dependency advisories
+
+`npm audit` reports 15 low-severity findings, all from a single upstream issue:
+**CVE-2025-14505** in `elliptic` (pulled in transitively by both `@ethersproject/*`
+and `@cosmjs/crypto`). It is an ECDSA nonce-truncation bug in signature *generation*
+with **no published fix** — `elliptic@6.6.1`, the latest release, is itself in the
+vulnerable range. A faulty signature simply fails on-chain (no funds move), and the
+key-derivation precondition (obtaining a faulty *and* a correct signature over
+identical inputs) does not arise in this bot, so it is accepted as low risk. Removing
+it requires migrating to the `@noble/curves`-based stacks (`@cosmjs ≥ 0.32`,
+`ethers v6`). There are **0 high, 0 critical, and 0 moderate** findings.
+
 ## Attribution
 
 Signing infrastructure (`src/utils/`) is from
