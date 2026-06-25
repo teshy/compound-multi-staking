@@ -76,7 +76,7 @@ granted.
 ## Setup
 
 ```bash
-git clone https://github.com/teshy-dev/compound-multi-staking
+git clone https://github.com/teshy/compound-multi-staking
 cd compound-multi-staking
 npm install
 
