@@ -58,6 +58,15 @@ class Network {
   }
 
   async load() {
+    // Skip cosmos.directory when local endpoints are configured — chain is already
+    // set from local data by the constructor's setChain() call, and this bot never
+    // uses the validator/operator lists fetched from the directory.
+    if (this.data.restUrl) {
+      this.validators = []
+      this.operators = (this.data.operators || []).map(data => Operator(this, data))
+      this.operatorCount = this.operators.length
+      return
+    }
     const chainData = await this.directory.getChainData(this.data.name);
     this.setChain({...this.data, ...chainData})
     this.validators = (await this.directory.getValidators(this.name)).map(data => {

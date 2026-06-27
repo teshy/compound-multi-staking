@@ -2,6 +2,9 @@
   "realio": {
     "prettyName": "Realio Network",
     "chainId": "realionetwork_3301-1",
+    "prefix": "realio",
+    "denom": "ario",
+    "decimals": 18,
     "restUrl": [
       "https://YOUR-REST-ENDPOINT"
     ],
