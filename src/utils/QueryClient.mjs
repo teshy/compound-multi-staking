@@ -3,6 +3,7 @@ import axiosRetry from 'axios-retry';
 import _ from "lodash";
 
 import { get } from './Helpers.mjs';
+import { USER_AGENT } from './constants.mjs';
 
 const QueryClient = async (chainId, restUrls, opts) => {
   const config = _.merge({
@@ -196,7 +197,7 @@ const QueryClient = async (chainId, restUrls, opts) => {
       searchParams.append('order_by', order);
     const client = axios.create({
       baseURL: restUrl,
-      headers: { 'User-Agent': RESTAKE_USER_AGENT }
+      headers: { 'User-Agent': USER_AGENT }
     });
     axiosRetry(client, { retries: retries || 0, shouldResetTimeout: true, retryCondition: (e) => true });
     return client.get(apiPath('tx', `txs?${searchParams.toString()}`), opts).then((res) => res.data);

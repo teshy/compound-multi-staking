@@ -1,1 +1,1 @@
-export const RESTAKE_USER_AGENT = 'REStake'
+export const USER_AGENT = 'teshy-compound'

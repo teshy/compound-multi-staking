@@ -4,7 +4,7 @@ import { coin as _coin } from  '@cosmjs/stargate'
 import axios from 'axios'
 import winston from 'winston'
 
-import { RESTAKE_USER_AGENT } from './constants.mjs'
+import { USER_AGENT } from './constants.mjs'
 
 export function coin(amount, denom){
   return _coin(format(floor(amount), {notation: 'fixed'}), denom)
@@ -137,7 +137,7 @@ export async function get(url, opts) {
     ...opts,
     headers: {
       ...headers,
-      'User-Agent': RESTAKE_USER_AGENT,
+      'User-Agent': USER_AGENT,
     }
   })
 }
@@ -149,7 +149,7 @@ export async function post(url, body, opts) {
     ...opts,
     headers: {
       ...headers,
-      'User-Agent': RESTAKE_USER_AGENT,
+      'User-Agent': USER_AGENT,
     }
   })
 }
