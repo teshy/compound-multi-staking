@@ -1,5 +1,7 @@
 # compound-multi-staking
 
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-yellow?logo=buy-me-a-coffee)](https://buymeacoffee.com/teshy)
+
 Auto-compound bot for **Realio** (`realionetwork_3301-1`) — and any other Cosmos chain
 using a **multistaking module that does not auto-withdraw rewards on delegate**.
 
