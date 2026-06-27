@@ -84,6 +84,10 @@ npm install
 cp .env.sample .env
 # Edit .env and set MNEMONIC to your bot wallet's 24-word phrase
 
+# Set your own REST and RPC endpoints in src/networks.local.json
+# Replace the placeholder URLs with a node you operate or trust.
+# Public Realio endpoints: https://github.com/cosmos/chain-registry/tree/master/realionetwork
+
 # Confirm the derived address is correct before doing anything else
 DRY_RUN=true node compound.mjs
 # Output: "Bot address: realio1..."  — verify this matches your funded wallet
