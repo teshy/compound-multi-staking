@@ -1,0 +1,5 @@
+node_modules
+package-lock.json
+
+# Vendored eco-stake/restake utils — pinned byte-identical to upstream. Never reformat.
+src

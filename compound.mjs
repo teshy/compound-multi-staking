@@ -36,7 +36,7 @@ import { coin, overrideNetworks } from './src/utils/Helpers.mjs'
 import fs from 'fs'
 
 const WITHDRAW_MSG = '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward'
-const DELEGATE_MSG  = '/cosmos.staking.v1beta1.MsgDelegate'
+const DELEGATE_MSG = '/cosmos.staking.v1beta1.MsgDelegate'
 
 const mnemonic = process.env.MNEMONIC
 if (!mnemonic) {
@@ -45,14 +45,19 @@ if (!mnemonic) {
 }
 
 const MIN_REWARD = BigInt(process.env.MIN_REWARD || '1000000000000000000') // 1 RIO default
-const DRY_RUN   = process.env.DRY_RUN !== 'false'
+const DRY_RUN = process.env.DRY_RUN !== 'false'
 
 // --- Network setup ---
 
 const baseNetworks = JSON.parse(fs.readFileSync('src/networks.json'))
-const overrides    = JSON.parse(fs.readFileSync('src/networks.local.json'))
-const data = overrideNetworks(baseNetworks, overrides).find(n => n.name === 'realio' || n.path === 'realio')
-if (!data) { console.error('realio network not found in networks.json/networks.local.json'); process.exit(1) }
+const overrides = JSON.parse(fs.readFileSync('src/networks.local.json'))
+const data = overrideNetworks(baseNetworks, overrides).find(
+  (n) => n.name === 'realio' || n.path === 'realio',
+)
+if (!data) {
+  console.error('realio network not found in networks.json/networks.local.json')
+  process.exit(1)
+}
 
 const network = new Network(data)
 await network.load()
@@ -61,17 +66,24 @@ await network.load()
 // Realio uses eth_secp256k1 with coin type 60 (Ethermint), not Cosmos default 118.
 // Using coin type 118 here produces a different address and every tx fails:
 //   "pubKey does not match signer address"
-const slip44 = (network.data.autostake?.correctSlip44 || network.slip44 === 60)
-  ? (network.slip44 || 118)
-  : (network.data.autostake?.slip44 || 118)
+const slip44 =
+  network.data.autostake?.correctSlip44 || network.slip44 === 60
+    ? network.slip44 || 118
+    : network.data.autostake?.slip44 || 118
 const hdPath = [
-  Slip10RawIndex.hardened(44), Slip10RawIndex.hardened(slip44),
-  Slip10RawIndex.hardened(0),  Slip10RawIndex.normal(0), Slip10RawIndex.normal(0),
+  Slip10RawIndex.hardened(44),
+  Slip10RawIndex.hardened(slip44),
+  Slip10RawIndex.hardened(0),
+  Slip10RawIndex.normal(0),
+  Slip10RawIndex.normal(0),
 ]
-let signer = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, { prefix: network.prefix, hdPaths: [hdPath] })
+let signer = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, {
+  prefix: network.prefix,
+  hdPaths: [hdPath],
+})
 if (slip44 === 60) signer = EthSigner(signer, EthWallet.fromMnemonic(mnemonic), network.prefix)
 
-const wallet     = new Wallet(network, signer)
+const wallet = new Wallet(network, signer)
 const botAddress = await wallet.getAddress()
 await network.connect({ timeout: 20000 })
 
@@ -88,7 +100,8 @@ async function fetchGranteeGrants() {
   const grants = []
   let key = ''
   do {
-    const url = `${network.restUrl}/cosmos/authz/v1beta1/grants/grantee/${botAddress}` +
+    const url =
+      `${network.restUrl}/cosmos/authz/v1beta1/grants/grantee/${botAddress}` +
       (key ? `?pagination.key=${encodeURIComponent(key)}` : '')
     const res = await fetch(url)
     const json = await res.json()
@@ -109,10 +122,15 @@ const byDelegator = {}
 for (const g of allGrants) {
   const d = (byDelegator[g.granter] ||= { withdraw: false, destValoper: null })
   const type = g.authorization?.['@type']
-  if (type === '/cosmos.authz.v1beta1.GenericAuthorization' && g.authorization.msg === WITHDRAW_MSG) {
+  if (
+    type === '/cosmos.authz.v1beta1.GenericAuthorization' &&
+    g.authorization.msg === WITHDRAW_MSG
+  ) {
     d.withdraw = true
-  } else if (type === '/cosmos.staking.v1beta1.StakeAuthorization'
-    && g.authorization.authorization_type === 'AUTHORIZATION_TYPE_DELEGATE') {
+  } else if (
+    type === '/cosmos.staking.v1beta1.StakeAuthorization' &&
+    g.authorization.authorization_type === 'AUTHORIZATION_TYPE_DELEGATE'
+  ) {
     // Sort allow_list for deterministic selection if multiple validators are listed
     const list = (g.authorization.allow_list?.address || []).slice().sort()
     d.destValoper = list[0] || null
@@ -122,19 +140,24 @@ for (const g of allGrants) {
 const eligible = Object.entries(byDelegator).filter(([, d]) => d.withdraw && d.destValoper)
 const incomplete = Object.keys(byDelegator).length - eligible.length
 if (incomplete > 0) {
-  console.log(`${incomplete} granter(s) skipped — missing withdraw or delegate grant (must opt in via the dual-grant page, not restake.app)`)
+  console.log(
+    `${incomplete} granter(s) skipped — missing withdraw or delegate grant (must opt in via the dual-grant page, not restake.app)`,
+  )
 }
 console.log(`${eligible.length} delegator(s) with both required grants`)
 console.log()
 
 // --- Per-delegator compound ---
 
-const denom         = network.denom
+const denom = network.denom
 const signingClient = wallet.signingClient()
 signingClient.registry.register('/cosmos.authz.v1beta1.MsgExec', MsgExec)
 const memo = 'auto-compound'
 
-let attempted = 0, succeeded = 0, skipped = 0, failed = 0
+let attempted = 0,
+  succeeded = 0,
+  skipped = 0,
+  failed = 0
 
 for (const [delegator, info] of eligible) {
   const tag = `[${delegator}]`
@@ -142,27 +165,31 @@ for (const [delegator, info] of eligible) {
     // Sum floored ario rewards across ALL reward sources for this delegator.
     // Realio pays all bond-denom rewards (RIO/RST/DSTRX) as ario, so this
     // single loop captures everything.
-    const rewards    = await network.queryClient.getRewards(delegator)
+    const rewards = await network.queryClient.getRewards(delegator)
     const withdrawMsgs = []
     let total = 0n
 
     for (const [srcValoper, entry] of Object.entries(rewards)) {
-      const r = (entry.reward || []).find(x => x.denom === denom)
+      const r = (entry.reward || []).find((x) => x.denom === denom)
       if (!r) continue
       const floored = BigInt(String(r.amount).split('.')[0]) // rewards are DecCoins
       if (floored <= 0n) continue
       total += floored
       withdrawMsgs.push({
         typeUrl: WITHDRAW_MSG,
-        value: MsgWithdrawDelegatorReward.encode(MsgWithdrawDelegatorReward.fromPartial({
-          delegatorAddress: delegator,
-          validatorAddress: srcValoper,
-        })).finish(),
+        value: MsgWithdrawDelegatorReward.encode(
+          MsgWithdrawDelegatorReward.fromPartial({
+            delegatorAddress: delegator,
+            validatorAddress: srcValoper,
+          }),
+        ).finish(),
       })
     }
 
     if (total < MIN_REWARD) {
-      console.log(`${tag} SKIP — ${total} ario pending (${Number(total) / 1e18} RIO), below MIN_REWARD`)
+      console.log(
+        `${tag} SKIP — ${total} ario pending (${Number(total) / 1e18} RIO), below MIN_REWARD`,
+      )
       skipped++
       continue
     }
@@ -173,11 +200,13 @@ for (const [delegator, info] of eligible) {
       ...withdrawMsgs,
       {
         typeUrl: DELEGATE_MSG,
-        value: MsgDelegate.encode(MsgDelegate.fromPartial({
-          delegatorAddress: delegator,
-          validatorAddress: info.destValoper,
-          amount: coin(total.toString(), denom),
-        })).finish(),
+        value: MsgDelegate.encode(
+          MsgDelegate.fromPartial({
+            delegatorAddress: delegator,
+            validatorAddress: info.destValoper,
+            amount: coin(total.toString(), denom),
+          }),
+        ).finish(),
       },
     ]
     const execMsg = {
@@ -185,7 +214,9 @@ for (const [delegator, info] of eligible) {
       value: { grantee: botAddress, msgs: innerMsgs },
     }
 
-    console.log(`${tag} ${withdrawMsgs.length} source(s) | ${Number(total) / 1e18} RIO → ${info.destValoper}`)
+    console.log(
+      `${tag} ${withdrawMsgs.length} source(s) | ${Number(total) / 1e18} RIO → ${info.destValoper}`,
+    )
     attempted++
 
     if (DRY_RUN) {
@@ -209,5 +240,7 @@ for (const [delegator, info] of eligible) {
 }
 
 console.log()
-console.log(`Done. attempted=${attempted} succeeded=${succeeded} skipped=${skipped} failed=${failed}`)
+console.log(
+  `Done. attempted=${attempted} succeeded=${succeeded} skipped=${skipped} failed=${failed}`,
+)
 process.exit(failed > 0 ? 1 : 0)
