@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    # Supply-chain floor: never propose a version published less than 14 days ago.
+    cooldown:
+      default-days: 14

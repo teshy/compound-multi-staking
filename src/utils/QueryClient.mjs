@@ -1,0 +1,338 @@
+import axios from "axios";
+import axiosRetry from 'axios-retry';
+import _ from "lodash";
+
+import { get } from './Helpers.mjs';
+import { USER_AGENT } from './constants.mjs';
+
+const QueryClient = async (chainId, restUrls, opts) => {
+  const config = _.merge({
+    connectTimeout: 10000,
+    // A node whose latest block is older than this is syncing, halted, or wedged (Realio makes a
+    // block every ~6 s), so its state is stale — skip it (docs/06 audit 2026-10-08).
+    maxBlockAgeMs: 120000,
+  }, opts)
+  const restUrl = await findAvailableUrl(restUrls, "rest", { timeout: config.connectTimeout })
+
+  function getAllValidators(pageSize, opts, pageCallback) {
+    return getAllPages((nextKey) => {
+      return getValidators(pageSize, opts, nextKey);
+    }, pageCallback, opts).then((pages) => {
+      const validators = _.shuffle(pages.map((el) => el.validators).flat());
+      return validators.reduce(
+        (a, v) => ({ ...a, [v.operator_address]: v }),
+        {}
+      );
+    });
+  }
+
+  function getValidators(pageSize, opts, nextKey) {
+    opts = opts || {};
+    const searchParams = new URLSearchParams();
+    if (opts.status)
+      searchParams.append("status", opts.status);
+    if (pageSize)
+      searchParams.append("pagination.limit", pageSize);
+    if (nextKey)
+      searchParams.append("pagination.key", nextKey);
+    return get(
+        apiUrl('staking', `validators?${searchParams.toString()}`), {
+        timeout: opts.timeout || 10000,
+      })
+      .then((res) => res.data);
+  }
+
+  function getAllValidatorDelegations(validatorAddress,
+    pageSize,
+    opts,
+    pageCallback) {
+    return getAllPages((nextKey) => {
+      return getValidatorDelegations(validatorAddress, pageSize, opts, nextKey);
+    }, pageCallback, opts).then((pages) => {
+      return _.compact(pages.map((el) => {
+        return el.delegation_responses
+      }).flat());
+    });
+  }
+
+  function getValidatorDelegations(validatorAddress, pageSize, opts, nextKey) {
+    const searchParams = new URLSearchParams();
+    if (pageSize)
+      searchParams.append("pagination.limit", pageSize);
+    if (nextKey)
+      searchParams.append("pagination.key", nextKey);
+
+    return get(apiUrl('staking', `validators/${validatorAddress}/delegations?${searchParams.toString()}`), opts)
+      .then((res) => res.data);
+  }
+
+  function getBalance(address, denom, opts) {
+    return get(apiUrl('bank', `balances/${address}`), opts)
+      .then((res) => res.data)
+      .then((result) => {
+        if (!denom)
+          return result.balances;
+
+        const balance = result.balances?.find(
+          (element) => element.denom === denom
+        ) || { denom: denom, amount: 0 };
+        return balance;
+      });
+  }
+
+  function getDelegations(address) {
+    return get(apiUrl('staking', `delegations/${address}`))
+      .then((res) => res.data)
+      .then((result) => {
+        const delegations = result.delegation_responses.reduce(
+          (a, v) => ({ ...a, [v.delegation.validator_address]: v }),
+          {}
+        );
+        return delegations;
+      });
+  }
+
+  // Addition over upstream (WO-044): one validator's staking record (status, jailed, ...).
+  function getValidator(validatorAddress, opts) {
+    return get(apiUrl('staking', `validators/${validatorAddress}`), opts)
+      .then((res) => res.data.validator)
+  }
+
+  function getRewards(address, opts) {
+    return get(apiUrl('distribution', `delegators/${address}/rewards`), opts)
+      .then((res) => res.data)
+      .then((result) => {
+        const rewards = result.rewards.reduce(
+          (a, v) => ({ ...a, [v.validator_address]: v }),
+          {}
+        );
+        return rewards;
+      });
+  }
+
+  function getCommission(validatorAddress, opts) {
+    return get(apiUrl('distribution', `validators/${validatorAddress}/commission`), opts)
+      .then((res) => res.data)
+      .then((result) => {
+        return result.commission;
+      });
+  }
+
+  function getProposals(opts) {
+    const { pageSize } = opts || {};
+    return getAllPages((nextKey) => {
+      const searchParams = new URLSearchParams();
+      searchParams.append("pagination.limit", pageSize || 100);
+      if (nextKey)
+        searchParams.append("pagination.key", nextKey);
+
+      return get(apiUrl('gov', `proposals?${searchParams.toString()}`), opts)
+        .then((res) => res.data);
+    }, undefined, opts).then((pages) => {
+      return pages.map(el => el.proposals).flat();
+    });
+  }
+
+  function getProposalTally(proposal_id, opts) {
+    return get(apiUrl('gov', `proposals/${proposal_id}/tally`), opts)
+      .then((res) => res.data);
+  }
+
+  function getProposalVote(proposal_id, address, opts) {
+    return get(apiUrl('gov', `proposals/${proposal_id}/votes/${address}`), opts)
+      .then((res) => res.data);
+  }
+
+  function getGranteeGrants(grantee, opts, pageCallback) {
+    const { pageSize } = opts || {};
+    return getAllPages((nextKey) => {
+      const searchParams = new URLSearchParams();
+      searchParams.append("pagination.limit", pageSize || 100);
+      if (nextKey)
+        searchParams.append("pagination.key", nextKey);
+
+      return get(apiUrl('authz', `grants/grantee/${grantee}?${searchParams.toString()}`), opts)
+        .then((res) => res.data);
+    }, pageCallback, opts).then((pages) => {
+      return pages.map(el => el.grants).flat();
+    });
+  }
+
+  function getGranterGrants(granter, opts, pageCallback) {
+    const { pageSize } = opts || {};
+    return getAllPages((nextKey) => {
+      const searchParams = new URLSearchParams();
+      searchParams.append("pagination.limit", pageSize || 100);
+      if (nextKey)
+        searchParams.append("pagination.key", nextKey);
+
+      return get(apiUrl('authz', `grants/granter/${granter}?${searchParams.toString()}`), opts)
+        .then((res) => res.data);
+    }, pageCallback, opts).then((pages) => {
+      return pages.map(el => el.grants).flat();
+    });
+  }
+
+  function getGrants(grantee, granter, opts) {
+    const searchParams = new URLSearchParams();
+    if (grantee)
+      searchParams.append("grantee", grantee);
+    if (granter)
+      searchParams.append("granter", granter);
+    return get(apiUrl('authz', `grants?${searchParams.toString()}`), opts)
+      .then((res) => res.data)
+      .then((result) => {
+        return result.grants;
+      });
+  }
+
+  // opts (NetworkRunner's { timeout }) is forwarded; it used to be dropped, leaving the restake
+  // withdraw-address query with no timeout (WO-061 review, same class as Code-Health C-3).
+  function getWithdrawAddress(address, opts) {
+    return get(apiUrl('distribution', `delegators/${address}/withdraw_address`), opts)
+      .then((res) => res.data)
+      .then((result) => {
+        return result.withdraw_address;
+      });
+  }
+
+  function getTransactions(params, _opts) {
+    const { pageSize, order, retries, ...opts } = _opts;
+    const searchParams = new URLSearchParams();
+    params.forEach(({ key, value }) => {
+      searchParams.append(key, value);
+    });
+    if (pageSize)
+      searchParams.append('pagination.limit', pageSize);
+    if (order)
+      searchParams.append('order_by', order);
+    const client = axios.create({
+      baseURL: restUrl,
+      headers: { 'User-Agent': USER_AGENT }
+    });
+    axiosRetry(client, { retries: retries || 0, shouldResetTimeout: true, retryCondition: () => true });
+    return client.get(apiPath('tx', `txs?${searchParams.toString()}`), opts).then((res) => res.data);
+  }
+
+  // Follows pagination.next_key to the end. WO-064 (Security S-30): bounded, because a node (or a path to
+  // it) that answers with endless or cyclic pages must not keep a fund-moving run paging forever and
+  // growing memory: more than opts.maxPages (default 1000) pages, or a next_key already seen, rejects.
+  async function getAllPages(getPage, pageCallback, opts) {
+    const maxPages = opts?.maxPages ?? 1000;
+    let pages = [];
+    const seen = new Set();
+    let nextKey;
+    do {
+      if (pages.length >= maxPages)
+        throw new Error('pagination exceeded maxPages');
+      const result = await getPage(nextKey);
+      pages.push(result);
+      nextKey = result.pagination?.next_key;
+      if (nextKey) {
+        if (seen.has(nextKey))
+          throw new Error('pagination repeated next_key');
+        seen.add(nextKey);
+      }
+      if (pageCallback)
+        await pageCallback(pages);
+    } while (nextKey);
+    return pages;
+  }
+
+  async function findAvailableUrl(urls, type, opts) {
+    if(!urls) return
+
+    if (!Array.isArray(urls)) {
+      if (urls.match('cosmos.directory')) {
+        return urls // cosmos.directory health checks already
+      } else {
+        urls = [urls]
+      }
+    }
+    const path = type === "rest" ? apiPath('base/tendermint', 'blocks/latest') : "/block";
+    // Must THROW (reject) on error/mismatch, never resolve undefined (f9ec73c): a URL that
+    // "succeeds" with undefined would yield restUrl=undefined and crash every caller.
+    const probe = async (url) => {
+      url = url.replace(/\/$/, '')
+      let data = await getLatestBlock(url, type, path, opts)
+      if (type === "rpc") data = data.result;
+      if (data.block?.header?.chain_id !== chainId) {
+        throw new Error(`chain_id mismatch at ${url}: ${data.block?.header?.chain_id} !== ${chainId}`)
+      }
+      // Delta over upstream: freshness, not just liveness. A catching-up or halted node still answers with
+      // the right chain_id but serves old state — grants a delegator revoked, rewards they already
+      // claimed — and the bot would compound from it. Missing/unparseable time = stale (fail closed).
+      const blockTime = Date.parse(data.block?.header?.time)
+      const age = Date.now() - blockTime
+      if (!Number.isFinite(age) || age > config.maxBlockAgeMs) {
+        throw new Error(`stale endpoint ${url}: latest block time ${data.block?.header?.time ?? 'missing'} is more than ${config.maxBlockAgeMs / 1000}s old (syncing or halted)`)
+      }
+      return url;
+    }
+    // Delta over upstream: ORDERED preference, not upstream's Promise.any race. The list is a priority
+    // order — your own indexing node first, public backups after — and the first healthy
+    // URL wins. A race let whichever answered fastest win, so a backup without tx indexing
+    // could become the broadcast + confirmation endpoint (WO-040). Rejects only if ALL fail
+    // (→ QueryClient throws → Network.connect catches → connected=false, cleanly).
+    const errors = []
+    for (const url of urls) {
+      try {
+        return await probe(url)
+      } catch (error) {
+        errors.push(error)
+      }
+    }
+    throw new AggregateError(errors, `no ${type} endpoint available`)
+  }
+
+  async function getLatestBlock(url, type, path, opts){
+    const { timeout } = opts || {}
+    try {
+      return await get(url + path, { timeout })
+        .then((res) => res.data)
+    } catch (error) {
+      const fallback = type === 'rest' && '/blocks/latest'
+      if (fallback && fallback !== path && error.response?.status === 501) {
+        return getLatestBlock(url, type, fallback, opts)
+      }
+      throw(error)
+    }
+  }
+
+  function apiUrl(type, path){
+    const normalizedRestUrl = restUrl.replace(/\/$/, '')
+    return normalizedRestUrl + apiPath(type, path)
+  }
+
+  function apiPath(type, path){
+    const versions = config.apiVersions || {}
+    const version = versions[type] || 'v1beta1'
+    const normalizedType = type.replace(/^\/+/, '')
+    const normalizedPath = path.replace(/^\/+/, '')
+    return `/cosmos/${normalizedType}/${version}/${normalizedPath}`
+  }
+
+  return {
+    connected: !!restUrl,
+    restUrl,
+    getAllValidators,
+    getValidators,
+    getAllValidatorDelegations,
+    getValidatorDelegations,
+    getValidator,
+    getBalance,
+    getDelegations,
+    getRewards,
+    getCommission,
+    getProposals,
+    getProposalTally,
+    getProposalVote,
+    getGrants,
+    getGranteeGrants,
+    getGranterGrants,
+    getWithdrawAddress,
+    getTransactions
+  };
+};
+
+export default QueryClient;

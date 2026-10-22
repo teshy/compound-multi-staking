@@ -1,0 +1,10 @@
+node_modules
+package-lock.json
+
+# The ported bot code (scripts/, src/) is kept as it was reviewed, so a diff against its source stays
+# readable. Never reformat it. Prettier checks the tests and the config (see package.json).
+scripts
+src
+# page/ holds files copied byte for byte from the grant page's source (their formatting is that repo's);
+# its gates are `tsc --noEmit` and vitest.
+page

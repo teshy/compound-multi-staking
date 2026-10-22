@@ -1,0 +1,6 @@
+{
+  "_comment": "A real committed Realio mainnet tx (the bot wallet, height 19887412), fetched 2026-10-15 from realio.api.m.stavr.tech /cosmos/base/tendermint/v1beta1/blocks/19887412. Public chain data. Pins that txHashHex(raw bytes) equals the chain txhash (WO-045 item 1).",
+  "height": "19887412",
+  "txhash": "C13FF23FFE0A4A28B549801F9E5B4F553CFC361F8D0F91E79BE4FEBB9DC7717E",
+  "tx_bytes_b64": "CuACCqABCjcvY29zbW9zLmRpc3RyaWJ1dGlvbi52MWJldGExLk1zZ1dpdGhkcmF3RGVsZWdhdG9yUmV3YXJkEmUKLXJlYWxpbzEwZXE2dzBhN2ZwZXR5MzN1YWcyZjU1ZTl0ZXd4YXp0NHYyOGFlbRI0cmVhbGlvdmFsb3BlcjE4YTMyZWw0bWF3M3Bxcjh4aDN5cmw5amE0bGVqczI2NWE1bnh0bQqgAQo3L2Nvc21vcy5kaXN0cmlidXRpb24udjFiZXRhMS5Nc2dXaXRoZHJhd0RlbGVnYXRvclJld2FyZBJlCi1yZWFsaW8xMGVxNncwYTdmcGV0eTMzdWFnMmY1NWU5dGV3eGF6dDR2MjhhZW0SNHJlYWxpb3ZhbG9wZXIxZXo0eDVjNzVxbjVzamthbmc5ajB6Zm1ya3BjbDlucnF3emdwNWsSGEJvdCBtb250aGx5IHJld2FyZCBjbGFpbRJ7CloKTwooL2V0aGVybWludC5jcnlwdG8udjEuZXRoc2VjcDI1NmsxLlB1YktleRIjCiEC3n1pwhEdMxDzpz+miQKTpcvFJQmkqMk6fkTuwpKxWK4SBAoCCAEY9wISHQoXCgRhcmlvEg8yNjE3MjkwMDAwMDAwMDAQ4fwPGkAr/bMXf1n8kiNko3MoCaA08UKoOLEJEU+hlNUaiLQ/Mw7Us9E2lupU/clMsvF9dqD+m5tT381OQbcnN2D2727T"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "compound-multi-staking-page",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The grant page's wallet-facing code, copied for review: what the page asks a wallet to sign. Not built or hosted from this repository.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cosmjs/encoding": "0.39.0",
+    "@cosmjs/proto-signing": "0.39.0",
+    "@cosmjs/stargate": "0.39.0",
+    "cosmjs-types": "0.11.0"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  },
+  "overrides": {
+    "@noble/ciphers": "2.2.0",
+    "@noble/curves": "2.2.0",
+    "@noble/hashes": "2.2.0",
+    "@scure/base": "2.2.0",
+    "@scure/bip39": "2.2.0",
+    "ws": "7.5.11"
+  }
+}
