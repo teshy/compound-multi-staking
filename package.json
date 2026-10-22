@@ -37,7 +37,7 @@
     "dotenv": "^16.0.3",
     "lodash": "^4.17.21",
     "mathjs": "^11.7.0",
-    "winston": "^3.13.0"
+    "winston": "^3.19.0"
   },
   "overrides": {
     "protobufjs": "^7.6.5",
