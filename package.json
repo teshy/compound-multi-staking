@@ -32,7 +32,7 @@
     "@ethersproject/wallet": "^5.7.0",
     "axios": "^1.20.0",
     "axios-retry": "^3.4.0",
-    "compare-versions": "^5.0.3",
+    "compare-versions": "^6.1.1",
     "cosmjs-types": "^0.7.1",
     "dotenv": "^16.0.3",
     "lodash": "^4.17.21",
