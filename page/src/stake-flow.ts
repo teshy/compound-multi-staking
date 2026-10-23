@@ -5,9 +5,11 @@ import { toRio } from './realio'
 // What a broadcast came to: undefined = nothing landed (the node refused it, or it was never sent);
 // otherwise the tx was submitted, and `confirmed` says whether it was seen committed with code 0.
 // confirmed: false means submitted but unconfirmed (WO-045, T-6) — it may still land — or, with
-// `failedCode`, that the tx lookup reported it committed with that non-zero code. That report comes
-// from an endpoint we do not run (docs/06 gate 2026-10-16, P-1), so a reported failure is never treated
-// as "nothing landed": the user is told to check the explorer, never to retry.
+// `failedCode`, that pollTx read it committed with that non-zero code. That verdict comes from the blocks
+// of the noders RPC (same provider as the REST endpoint the page broadcasts through; same node id on 2026-10-23), a
+// service we do not run (WO-084; docs/06 gate 2026-10-16, P-1),
+// so a reported failure is never treated as "nothing landed": the user is told to check the explorer,
+// never to retry.
 export interface TxOutcome {
   txhash: string
   confirmed: boolean

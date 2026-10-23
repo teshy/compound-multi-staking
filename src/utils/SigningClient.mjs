@@ -177,7 +177,7 @@ function SigningClient(network, signer) {
         throw new Error('simulate returned no usable gas_used')
       return Math.trunc(Number(estimate) * (modifier || defaultGasModifier));
     } catch (error) {
-      // eslint-disable-next-line preserve-caught-error -- a fail-closed rethrow in security-reviewed code; attaching { cause } changes the thrown Error, so it waits for a reviewed change
+      // eslint-disable-next-line preserve-caught-error -- no { cause }: the caught error can be an AxiosError, and an uncaught throw would print its config, request and response
       throw new Error(error.response?.data?.message || error.message)
     }
   }

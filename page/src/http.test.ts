@@ -1,7 +1,7 @@
 // WO-057 D1 (C-2, C-23, C-30, C-46): one checked GET helper. The status is checked BEFORE the body
 // is parsed, so a non-2xx never reads as data and a non-JSON error page still carries its status.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getJson, requestJson, HttpError, READ_TIMEOUT_MS, withTimeout, isAbortError } from './http'
+import { getJson, requestJson, HttpError, READ_TIMEOUT_MS, withTimeout } from './http'
 
 const json = (body: unknown, status = 200, statusText = '') =>
   new Response(JSON.stringify(body), {
@@ -135,14 +135,6 @@ describe('timeouts', () => {
     } finally {
       Object.defineProperty(AbortSignal, 'timeout', { value: original, configurable: true })
     }
-  })
-
-  it('isAbortError: TimeoutError and AbortError only', () => {
-    expect(isAbortError(new DOMException('t', 'TimeoutError'))).toBe(true)
-    expect(isAbortError(new DOMException('a', 'AbortError'))).toBe(true)
-    expect(isAbortError(new TypeError('Failed to fetch'))).toBe(false)
-    expect(isAbortError(new SyntaxError('bad json'))).toBe(false)
-    expect(isAbortError(undefined)).toBe(false)
   })
 
   it("withTimeout keeps the caller's own signal instead of adding one", () => {

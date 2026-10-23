@@ -1,0 +1,14 @@
+{
+  "_comment": "A real committed Realio mainnet tx (one MsgBridgeOut from a third-party account, height 20230800), captured 2026-10-23 from realio-rpc.noders.services (CometBFT 0.38.19) for the pollTx tests (WO-084). `tx_b64` is data.txs[0] of /block?height=20230800; `result` is txs_results[0] of /block_results?height=20230800 minus `data` and `events` (which no test reads). txs_results[i].code is present as the integer 0 (not omitted), so an absent code is no answer (D3). Nothing here is signed or secret.",
+  "height": "20230800",
+  "txhash": "0309451C066A3482E0CAA22BEC084C8D675A9F89AC8A128A9E5BA1844B3AE34C",
+  "tx_b64": "CrUBCnQKJS9yZWFsaW9uZXR3b3JrLmJyaWRnZS52MS5Nc2dCcmlkZ2VPdXQSSwotcmVhbGlvMXdyZzRxbjNoM3d2cjB1aDI4eHd3cnpoNmEzcHNtNGZmd2RleHZrEhoKBGFyaW8SEjc1MDAwMDAwMDAwMDAwMDAwMBI9YnJpZGdlOmV0aGVyZXVtOjB4NzBkMTUwNEUzNzhCOTgzN0YyRWEzOTljZTE4YUZhRWM0MzBERDUyOTp2MRJ8CloKTwooL2V0aGVybWludC5jcnlwdG8udjEuZXRoc2VjcDI1NmsxLlB1YktleRIjCiEDdurAztyL0WW7JFGtzchiIOa7Lgc5NI9jvbg+xsrSf+kSBAoCCAEYgwMSHgoYCgRhcmlvEhA2MDAwMDAwMDAwMDAwMDAwEOCnEhpBzEV3pSqFqgyhqj7jpNUd6ybIH4mYk1Dq+Oa7LQcQF8hRMYo770NUDkKCTMCPtampZjNz0uyE1vC6W2Jx8d3oORw=",
+  "result": {
+    "code": 0,
+    "codespace": "",
+    "log": "",
+    "info": "",
+    "gas_wanted": "300000",
+    "gas_used": "99767"
+  }
+}

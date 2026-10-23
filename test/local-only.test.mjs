@@ -381,3 +381,41 @@ test('fd 9 open on a DIFFERENT file than the variable names refuses', () => {
   assert.equal(r.code, 1, r.out)
   assert.ok(r.out.includes(REFUSAL), r.out)
 })
+
+test('applyLocalOnly: no URL on the trusted host → the same message, with the filterLocalUrls error as its cause', () => {
+  let thrown
+  try {
+    applyLocalOnly(DATA(), { COMPOUND_LOCAL_ONLY: '1', COMPOUND_NODE_HOST: '203.0.113.99' })
+  } catch (e) {
+    thrown = e
+  }
+  assert.ok(thrown instanceof Error, 'it throws')
+  assert.ok(thrown.cause instanceof Error, 'the caught error is attached')
+  assert.match(thrown.cause.message, /no local node URL/)
+  assert.equal(
+    thrown.message,
+    `COMPOUND_LOCAL_ONLY=1 but ${thrown.cause.message}; refusing to use a non-local node for a fund-moving run`,
+  )
+})
+
+// The simulate rethrow deliberately carries NO cause: the caught error can be an AxiosError, and an uncaught throw
+// would make Node print the cause's config, request and response.
+test('SigningClient.simulate keeps its eslint disable with the no-cause reason, and attaches no cause', async () => {
+  const { readFileSync } = await import('node:fs')
+  const src = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'utils', 'SigningClient.mjs'),
+    'utf8',
+  )
+  const lines = src.split('\n')
+  const at = lines.findIndex((l) => l.includes('eslint-disable-next-line preserve-caught-error'))
+  assert.ok(at >= 0, 'the disable is still there')
+  assert.match(
+    lines[at],
+    /-- no \{ cause \}: the caught error can be an AxiosError, and an uncaught throw would print its config, request and response$/,
+  )
+  assert.match(
+    lines[at + 1],
+    /^\s*throw new Error\(error\.response\?\.data\?\.message \|\| error\.message\)$/,
+    'the throw carries no { cause }',
+  )
+})
