@@ -272,8 +272,10 @@ Removing it means moving to the `@noble/curves`-based stacks (`@cosmjs` ≥ 0.32
 high, 0 critical and 0 moderate findings. `npm --prefix page audit` reports 0 vulnerabilities. Registry
 signatures verify for every installed package (`npm audit signatures`, root and `page/`). The page's
 production packages are the same versions as the grant page's (`page/package.json` pins the four direct ones
-and overrides six transitive ones to the private lockfile's). Dependabot (`.github/dependabot.yml`, a 14-day
-cooldown) watches the root package only; `page/` follows the private repository's lockfile by hand. The six
+and overrides six transitive ones to the private lockfile's). Dependabot raises security alerts
+for a vulnerable dependency and opens no version-update PRs (`.github/dependabot.yml`), because the root
+lockfile mirrors the bot Teshy runs and moves in the private repository first, under review. `page/` follows the
+private repository's lockfile by hand. The six
 overrides matter: `@scure/base` 2.4.0, for example, breaks the bech32 decoding the page uses, and the private
 lockfile pins 2.2.0. If they are regenerated, nothing here re-checks that the versions still match the deployed
 page. Installs should use `--min-release-age=14` where npm supports it.

@@ -4,7 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+    # Alerts only, no version-update PRs. The root lockfile mirrors the bot Teshy runs, so a version bump lands in the
+    # private repository first, under review, and is copied here; a version-update PR could never merge on its own.
+    # 0 stops version-update PRs. Security alerts (repository setting) still report a vulnerable dependency.
+    open-pull-requests-limit: 0
     # Supply-chain floor: never propose a version published less than 14 days ago.
     cooldown:
       default-days: 14
