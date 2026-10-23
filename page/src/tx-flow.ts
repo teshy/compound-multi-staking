@@ -80,7 +80,7 @@ export async function runTx(
       return { txhash: res.txhash, confirmed: true }
     }
     if (conf.status === 'unconfirmed') {
-      // T-6: the node accepted the tx into its mempool but no endpoint could confirm it. It may
+      // T-6: the node accepted the tx into its mempool but no block verdict could be read. It may
       // still land, so the copy never says "retry". transaction_unconfirmed is a plain dataLayer
       // event; forward it with a built-in GA4 event tag only (CLAUDE.md GTM rule: no Custom HTML).
       log(
@@ -90,11 +90,12 @@ export async function runTx(
       track({ event: 'transaction_unconfirmed', error_label: label })
       return { txhash: res.txhash, confirmed: false }
     }
-    // The tx lookup reports the tx committed with a non-zero code. That answer comes from an endpoint
-    // we do not run and is not verified here (docs/06 gate 2026-10-16, P-1), so: the page shows only
-    // the code and the hash, never the endpoint's raw_log text (it could carry any message); there is
-    // no retry wording; and the outcome is "reported failed", not "nothing landed", so no caller
-    // treats the tx as one that can simply be sent again.
+    // pollTx read the tx committed with a non-zero code from the blocks of the noders RPC (same provider as
+    // the REST endpoint the page broadcasts through; same node id on 2026-10-23; WO-084, docs/06 gate
+    // 2026-10-16, P-1), a service we do not run, so: the page shows only
+    // the code and the hash, never node text (pollTx returns none); there is no retry wording; and the
+    // outcome is "reported failed", not "nothing landed", so no caller treats the tx as one that can
+    // simply be sent again.
     log(
       `${label}: ${res.txhash} was reported as failed on-chain (code ${conf.code}). Check it on the explorer before resubmitting.`,
       'err',

@@ -41,8 +41,8 @@ Each value except the site is in [`page/src/realio.ts`](page/src/realio.ts) (`BO
 wallet shows when you sign.
 
 **Teshy's bot runs this code from Teshy's private repository.** The page modules in `page/` were copied from
-private commit `16f9579`. The bot code in `scripts/` and `src/` was ported from the same repository (its last
-change there is `88aebe8`). The transaction memo (`Teshy auto-compound`, what you see on chain) and the HTTP
+private commit `97e80d3`. The bot code in `scripts/` and `src/` was ported from the same repository, also at
+`97e80d3`. The transaction memo (`Teshy auto-compound`, what you see on chain) and the HTTP
 user agent are the same as in production. These parts differ:
 
 - environment variable names: `COMPOUND_*` here, Teshy's own names in production;
@@ -256,10 +256,10 @@ uses 0.39.
 - **Not covered here:** `main.ts` and the DOM, the page's hosting headers, a live broadcast, and the private
   wrapper.
 
-The files in `page/src/` are copies, identical to the private repository's at `16f9579` except for one
+The files in `page/src/` are copies, identical to the private repository's at `97e80d3` except for one
 reworded comment in `realio.ts` (it named private infrastructure), and the three test files that read files
 outside this set: `sign.test.ts` and `scrub.test.ts` lose the tests that read the site's hosting headers and
-`main.ts`, and `grants.test.ts` and `sign.test.ts` read their two fixtures from `page/test-fixtures/`.
+`main.ts`, and `grants.test.ts` and `sign.test.ts` read their three fixtures from `page/test-fixtures/`.
 
 ## Dependency advisories
 

@@ -27,12 +27,6 @@ function timeoutSignal(ms: number): AbortSignal | undefined {
     : undefined
 }
 
-// A timeout or an abort, as opposed to a network error or an unreadable body.
-export function isAbortError(e: unknown): boolean {
-  const name = (e as { name?: unknown } | null)?.name
-  return name === 'TimeoutError' || name === 'AbortError'
-}
-
 // `init` with a timeout signal added, unless the caller passed a signal of its own.
 export function withTimeout(init: RequestInit | undefined, ms: number): RequestInit {
   const signal = init?.signal ?? timeoutSignal(ms)

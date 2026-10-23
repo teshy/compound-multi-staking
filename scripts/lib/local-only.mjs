@@ -65,7 +65,6 @@ export function applyLocalOnly(data, env = process.env) {
     const host = env.COMPOUND_NODE_HOST
     return { ...data, restUrl: filterLocalUrls(data.restUrl, host), rpcUrl: filterLocalUrls(data.rpcUrl, host) }
   } catch (e) {
-    // eslint-disable-next-line preserve-caught-error -- a fail-closed rethrow in security-reviewed code; attaching { cause } changes the thrown Error, so it waits for a reviewed change
-    throw new Error(`COMPOUND_LOCAL_ONLY=1 but ${e.message}; refusing to use a non-local node for a fund-moving run`)
+    throw new Error(`COMPOUND_LOCAL_ONLY=1 but ${e.message}; refusing to use a non-local node for a fund-moving run`, { cause: e })
   }
 }

@@ -13,16 +13,14 @@ export const DENOM = 'ario'
 const DISPLAY = 'RIO' // used only in keplrChainConfig below (not exported)
 export const DECIMALS = 18
 
-const RPC_URL = 'https://realio-rpc.noders.services' // used in fetchValidatorBondCoin + keplrChainConfig (not exported)
+const RPC_URL = 'https://realio-rpc.noders.services' // used in fetchValidatorBondCoin + keplrChainConfig, and exported as TX_CONFIRM_RPC_URL
 export const REST_URL = 'https://realio-api.noders.services'
-// Where pollTx looks a submitted tx up by hash, in order (WO-045, T-6). noders has tx indexing
-// disabled (HTTP 500 "transaction indexing is disabled", re-probed 2026-10-15), so pollTx drops it
-// on the first answer and falls back to STAVR: on v1.8.0, synced, kv indexing on, CORS open; a
-// known bot tx was found by hash there 2026-10-15. Nothing is signed or sent there, but its answer is
-// trusted for what the page tells the user and for whether a multi-stake flow sends its next stake
-// (docs/06 gate 2026-10-16, P-1; see pollTx). Each host must also be in the compound target's CSP
+// Where pollTx reads a submitted tx's verdict (WO-084, docs/06 gate 2026-10-16 P-1): the blocks of the noders
+// RPC (same provider as the REST endpoint the page broadcasts through; same node id on 2026-10-23), not a
+// third-party lookup endpoint. noders has tx indexing disabled (re-probed 2026-10-15), so pollTx scans
+// /blockchain, /block and /block_results instead (see pollTx). The host must be in the compound target's CSP
 // connect-src (firebase.json).
-export const TX_LOOKUP_URLS = [REST_URL, 'https://realio.api.m.stavr.tech'] as const
+export const TX_CONFIRM_RPC_URL = RPC_URL
 // The Graph subgraph indexing DSTRX ERC-20 balances — used by the Realio explorer.
 // ID format: "{contractAddress}/{evmAddress}" both lowercase.
 const DSTRX_SUBGRAPH = 'https://graph-node.realio.network/subgraphs/name/dstrx-mainnet-subgraph'
